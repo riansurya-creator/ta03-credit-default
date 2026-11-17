@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prediksi Risiko Gagal Bayar Kartu Kredit</title>
+<style>
+  :root { --bg:#f4f6fa; --card:#fff; --text:#1d2433; --muted:#667085; --line:#d9dee8; --brand:#2f5bea; --bad:#c62828; --good:#2e7d32; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#12151c; --card:#1b2029; --text:#e8ebf2; --muted:#9aa3b5; --line:#2e3646; --brand:#6d8cff; --bad:#ff6b6b; --good:#5fd068; } }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:760px; margin:0 auto; padding:28px 16px 48px; }
+  h1 { font-size:1.5rem; margin:0 0 4px; } p.sub { color:var(--muted); margin:0 0 20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; }
+  @media (max-width:600px) { .grid { grid-template-columns:1fr; } }
+  label { display:block; font-size:.85rem; font-weight:600; margin-bottom:4px; }
+  input, select { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--text); font-size:.95rem; }
+  small { color:var(--muted); font-size:.75rem; }
+  button { margin-top:18px; width:100%; padding:12px; border:0; border-radius:8px; background:var(--brand); color:#fff; font-size:1rem; font-weight:600; cursor:pointer; }
+  .result { margin-top:20px; padding:16px; border-radius:10px; border:2px solid var(--good); }
+  .result.risky { border-color:var(--bad); }
+  .result h2 { margin:0 0 6px; font-size:1.25rem; color:var(--good); } .result.risky h2 { color:var(--bad); }
+  .bar { height:10px; background:var(--line); border-radius:6px; overflow:hidden; margin:8px 0; }
+  .bar span { display:block; height:100%; background:var(--good); } .risky .bar span { background:var(--bad); }
+  .error { margin-top:16px; padding:12px; border-radius:8px; border:1px solid var(--bad); color:var(--bad); }
+  footer { margin-top:18px; color:var(--muted); font-size:.8rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Prediksi Risiko Gagal Bayar Kartu Kredit</h1>
+  <p class="sub">Alat bantu analis kredit berbasis Regresi Logistik. Masukkan data nasabah lalu klik Prediksi.</p>
+
+  <form method="post" class="card">
+    <div class="grid">
+      <div><label for="LIMIT_BAL">Batas Kredit (LIMIT_BAL)</label>
+        <input type="number" step="any" name="LIMIT_BAL" id="LIMIT_BAL" required value="{{ values.get('LIMIT_BAL', '') }}"></div>
+      <div><label for="AGE">Usia</label>
+        <input type="number" name="AGE" id="AGE" min="18" max="100" required value="{{ values.get('AGE', '') }}"></div>
+      <div><label for="SEX">Jenis Kelamin</label>
+        <select name="SEX" id="SEX">
+          <option value="1" {{ 'selected' if values.get('SEX')=='1' }}>Laki-laki</option>
+          <option value="2" {{ 'selected' if values.get('SEX')=='2' }}>Perempuan</option></select></div>
+      <div><label for="EDUCATION">Pendidikan</label>
+        <select name="EDUCATION" id="EDUCATION">
+          <option value="1" {{ 'selected' if values.get('EDUCATION')=='1' }}>Pascasarjana</option>
+          <option value="2" {{ 'selected' if values.get('EDUCATION')=='2' }}>Universitas</option>
+          <option value="3" {{ 'selected' if values.get('EDUCATION')=='3' }}>SMA</option>
+          <option value="4" {{ 'selected' if values.get('EDUCATION')=='4' }}>Lainnya</option></select></div>
+      <div><label for="MARRIAGE">Status Pernikahan</label>
+        <select name="MARRIAGE" id="MARRIAGE">
+          <option value="1" {{ 'selected' if values.get('MARRIAGE')=='1' }}>Menikah</option>
+          <option value="2" {{ 'selected' if values.get('MARRIAGE')=='2' }}>Lajang</option>
+          <option value="3" {{ 'selected' if values.get('MARRIAGE')=='3' }}>Lainnya</option></select></div>
+      <div><label for="PAY_0">Status Bayar Bulan Terakhir (PAY_0)</label>
+        <select name="PAY_0" id="PAY_0">{% for v, t in pay_options %}<option value="{{ v }}" {{ 'selected' if values.get('PAY_0')==v|string }}>{{ t }}</option>{% endfor %}</select></div>
+      <div><label for="PAY_2">Status Bayar 2 Bulan Lalu (PAY_2)</label>
+        <select name="PAY_2" id="PAY_2">{% for v, t in pay_options %}<option value="{{ v }}" {{ 'selected' if values.get('PAY_2')==v|string }}>{{ t }}</option>{% endfor %}</select></div>
+      <div><label for="PAY_3">Status Bayar 3 Bulan Lalu (PAY_3)</label>
+        <select name="PAY_3" id="PAY_3">{% for v, t in pay_options %}<option value="{{ v }}" {{ 'selected' if values.get('PAY_3')==v|string }}>{{ t }}</option>{% endfor %}</select></div>
+      <div><label for="BILL_AMT1">Tagihan Bulan Terakhir (BILL_AMT1)</label>
+        <input type="number" step="any" name="BILL_AMT1" id="BILL_AMT1" required value="{{ values.get('BILL_AMT1', '') }}"></div>
+      <div><label for="PAY_AMT1">Pembayaran Bulan Terakhir (PAY_AMT1)</label>
+        <input type="number" step="any" min="0" name="PAY_AMT1" id="PAY_AMT1" required value="{{ values.get('PAY_AMT1', '') }}"></div>
+    </div>
+    <button type="submit">Prediksi</button>
+  </form>
+
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+  {% if result %}
+  <div class="result {{ 'risky' if result.risky }}">
+    <h2>{{ result.label }}</h2>
+    <div>Probabilitas gagal bayar: <strong>{{ result.proba }}%</strong></div>
+    <div class="bar"><span style="width: {{ result.proba }}%"></span></div>
+    <small>Ambang keputusan: {{ result.threshold }}%. Prediksi "Berisiko" jika probabilitas &ge; ambang.</small>
+  </div>
+  {% endif %}
+
+  <footer>Performa model pada data uji: Recall {{ metrics.recall }} &middot; Precision {{ metrics.precision }} &middot; AUC {{ metrics.auc }}.
+    Hasil prediksi hanyalah alat bantu keputusan, bukan pengganti penilaian analis.</footer>
+</main>
+</body>
+</html>
